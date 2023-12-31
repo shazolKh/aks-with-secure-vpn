@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
- labels:
-   app: tomcat
-   component: filebeat
- name: filebeat-sidecar-config
+  labels:
+    app: {{ .Values.appName }}
+    component: filebeat
+  name: filebeat-sidecar-config
 data:
   filebeat.yml: |
     filebeat:
@@ -29,12 +29,3 @@ data:
           - "/usr/local/tomcat/logs/manager.*.log"
     output.logstash:
         hosts: ["logstash-logstash:5044"]
-    # output:
-    #   elasticsearch:
-    #     host: "${NODE_NAME}"
-    #     hosts: '["${ELASTICSEARCH_HOSTS:elasticsearch-master:9200}"]'
-    #     username: "elastic"
-    #     password: "vNWOBLFtbslgqWow"
-        # ssl_certificate_verification: false
-        # protocol: https
-        # ssl.certificate_authorities: ["/usr/share/filebeat/certs/ca.crt"]

@@ -74,3 +74,13 @@ resource "helm_release" "kibana" {
 
   depends_on = [azurerm_kubernetes_cluster.aks_cluster]
 }
+
+resource "helm_release" "tomcat" {
+  name = "tomcat"
+  repository = "../k8s/tomcat"
+  chart = "tomcat"
+  namespace = local.ns
+  create_namespace = true
+
+  depends_on = [ azurerm_kubernetes_cluster.aks_cluster ]
+}

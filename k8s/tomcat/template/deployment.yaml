@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tomcat
+  name: {{ .Values.appName }}
   labels:
-    app: tomcat
+    app: {{ .Values.appName }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: tomcat
+      app: {{ .Values.appName }}
   template:
     metadata:
       labels:
-        app: tomcat
+        app: {{ .Values.appName }}
     spec:
       containers:
       - name: filebeat-sidecar
-        image: docker.elastic.co/beats/filebeat:8.5.1
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         env:
         - name: POD_NAMESPACE
           valueFrom:
@@ -29,22 +29,18 @@ spec:
               apiVersion: v1
               fieldPath: spec.nodeName
         volumeMounts:
-        - name: logs-volume
-          mountPath: /usr/local/tomcat/logs
-        - name: filebeat-config
-          mountPath: /usr/share/filebeat/filebeat.yml
-          subPath: filebeat.yml
-      - name: tomcat
-        image: tomcat
+{{- toYaml .Values.volumeMounts | nindent 10 }}
+      - name: {{ .Values.appName }}
+        image: {{ .Values.appName }}
         ports:
         - containerPort: 8080
         volumeMounts:
-        - name: logs-volume
-          mountPath: /usr/local/tomcat/logs
+        - name: {{ .Values.volumeMounts[0].name }}
+          mountPath: {{ .Values.volumeMounts[0].mountPath }}
       securityContext:
-        fsGroup: 1000
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
       volumes:
-      - name: logs-volume
+      - name: {{ .Values.volumeMounts[0].name }}
         emptyDir: {}
       - name: filebeat-config
         configMap:
