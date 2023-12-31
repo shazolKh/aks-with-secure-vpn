@@ -34,3 +34,5 @@ override.tf.json
 terraform.rc
 *.txt
 terraform/*
+k8s/filebeat-configmap.yaml
+k8s/tomcat-filebeat.yaml
