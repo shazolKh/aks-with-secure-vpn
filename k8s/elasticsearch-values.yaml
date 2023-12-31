@@ -1,0 +1,31 @@
+esConfig:
+  elasticsearch.yml: |
+    xpack.security.enabled: false
+  
+volumeClaimTemplate:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 10Gi
+
+resources:
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+replicas: 2
+antiAffinity: "soft"
+
+nodeAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: "kubernetes.azure.com/scalesetpriority"
+            operator: In
+            values:
+              - "spot"
+
+tolerations:
+  - key: "kubernetes.azure.com/scalesetpriority"
+    operator: "Equal"
+    value: "spot"
+    effect: "NoSchedule"
