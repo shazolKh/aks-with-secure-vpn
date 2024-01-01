@@ -7,7 +7,7 @@ locals {
   PUBLIC_CERT_DATA     = file("rootcert.txt")
   dns_prefix           = "terraform-elk-cluster-dns"
   cluster_name         = "Terraform-ELK-Cluster"
-  vm_size              = "Standard_B2s"
+  vm_size              = "Standard_DS2_v2"
   orchestrator_version = "1.27.7"
 }
 
@@ -125,30 +125,24 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
   depends_on = [azurerm_subnet.aks_default_subnet]
 }
 
-# resource "azurerm_role_assignment" "example" {
-#   scope                = azurerm_subnet.aks_default_subnet.name
-#   role_definition_name = "Network Contributor"
-#   principal_id         = data.azurerm_client_config.example.object_id
-# }
+resource "azurerm_kubernetes_cluster_node_pool" "aks_node_pool" {
+  enable_auto_scaling    = true
+  enable_host_encryption = false
+  enable_node_public_ip  = false
+  eviction_policy        = "Deallocate"
+  fips_enabled           = false
+  kubernetes_cluster_id  = azurerm_kubernetes_cluster.aks_cluster.id
+  max_count              = 10
+  min_count              = 1
+  mode                   = "User"
+  name                   = "spotnodepool"
+  node_count             = 1
+  orchestrator_version   = local.orchestrator_version
+  os_disk_size_gb        = 128
+  os_sku                 = "Ubuntu"
+  priority               = "Spot"
+  vm_size                = "Standard_D2s_v3"
+  vnet_subnet_id         = azurerm_subnet.aks_default_subnet.id
 
-# resource "azurerm_kubernetes_cluster_node_pool" "aks_node_pool" {
-#   enable_auto_scaling    = true
-#   enable_host_encryption = false
-#   enable_node_public_ip  = false
-#   eviction_policy        = "Deallocate"
-#   fips_enabled           = false
-#   kubernetes_cluster_id  = azurerm_kubernetes_cluster.aks_cluster.id
-#   max_count              = 10
-#   min_count              = 1
-#   mode                   = "User"
-#   name                   = "spotnodepool"
-#   node_count             = 1
-#   orchestrator_version   = local.orchestrator_version
-#   os_disk_size_gb        = 128
-#   os_sku                 = "Ubuntu"
-#   priority               = "Spot"
-#   vm_size                = "Standard_B2als_v2"
-#   vnet_subnet_id         = azurerm_subnet.aks_default_subnet.id
-
-#   depends_on = [ azurerm_resource_group.aks_rg, azurerm_kubernetes_cluster.aks_cluster, azurerm_virtual_network.aks_vnet ]
-# }
+  depends_on = [ azurerm_resource_group.aks_rg, azurerm_kubernetes_cluster.aks_cluster, azurerm_virtual_network.aks_vnet ]
+}
